@@ -26,7 +26,6 @@ object TP {
       .setOutputCol("tfidf")
   }
   def getTokenizeStage(): RegexTokenizer = {
-    println("hello from foo")
     val tokenizer = new RegexTokenizer()
       .setPattern("\\W+")
       .setGaps(true)
@@ -113,7 +112,7 @@ object TP {
   }
   def getParamGrid(regParam: DoubleParam, minDf: DoubleParam): Array[ParamMap] = {
     return new ParamGridBuilder()
-      .addGrid(regParam, Array(1.0E-8, 1.0E-2, 2.0))
+      .addGrid(regParam, Array(10e-8, 10e-6, 10e-4, 10e-2))
       .addGrid(minDf, Array(55, 95, 20.0))
       .build()
   }
@@ -150,7 +149,7 @@ object TP {
           stage10
         ))
 
-    val splits = df.randomSplit(Array(0.1, 0.9), 24)
+    val splits = df.randomSplit(Array(0.1, 0.9))
     val test = splits(0)
     val training = splits(1)
 
@@ -159,8 +158,14 @@ object TP {
     val result = model.transform(test)
 
 
+    val score = new MulticlassClassificationEvaluator()
+      .setLabelCol("final_status")
+      .setPredictionCol("predictions")
+      .evaluate(result)
+
     println(df.head())
     println(result.head())
+    println(score)
   }
 }
 

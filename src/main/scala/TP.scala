@@ -2,6 +2,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.ml.classification.LogisticRegression
 import org.apache.spark.ml.Pipeline
 import org.apache.spark.sql.{SQLContext, DataFrame}
+import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}
 import org.apache.spark.ml.feature.{
   CountVectorizer,
   CountVectorizerModel,
@@ -128,6 +129,11 @@ object TP {
           stage9,
           stage10
         ))
+
+    val splits = df.randomSplit(Array(0.1, 0.9), 24)
+    val test = splits(0)
+    val training = splits(1)
+
 
     println(df.head())
   }

@@ -1,10 +1,14 @@
 import org.apache.spark.SparkContext
-import org.apache.spark.ml.classification.LogisticRegression
 import org.apache.spark.ml.Pipeline
-import org.apache.spark.sql.{SQLContext, DataFrame, Row, Dataset}
-import org.apache.spark.ml.tuning.{TrainValidationSplitModel, TrainValidationSplit, ParamGridBuilder}
+import org.apache.spark.ml.classification.LogisticRegression
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
+import org.apache.spark.sql.{SQLContext, DataFrame, Row, Dataset}
 import org.apache.spark.ml.param.{DoubleParam, ParamMap}
+import org.apache.spark.ml.tuning.{
+  TrainValidationSplitModel,
+  TrainValidationSplit,
+  ParamGridBuilder
+}
 import org.apache.spark.ml.feature.{
   CountVectorizer,
   CountVectorizerModel,
@@ -18,7 +22,6 @@ import org.apache.spark.ml.feature.{
   StopWordsRemover
 }
 
-// TP3
 object TP {
   def getIdfStage(): IDF = {
     return new IDF()
@@ -43,7 +46,7 @@ object TP {
   }
   def getDf(sqlContext: SQLContext): DataFrame = {
     return sqlContext.read.parquet(
-      "../../../spark-tp3/prepared_trainingset")
+      "spark-tp3/prepared_trainingset")
   }
   def getTfStage(): CountVectorizer = {
     return new CountVectorizer()
@@ -155,17 +158,16 @@ object TP {
 
     val paramGrid = this.getParamGrid(stage10.regParam, stage3.minDF)
     val model = this.getModel(pipeline, paramGrid, training)
-    val result = model.transform(test)
+    val df_WithPredictions= model.transform(test)
 
 
     val score = new MulticlassClassificationEvaluator()
       .setLabelCol("final_status")
       .setPredictionCol("predictions")
-      .evaluate(result)
+      .evaluate(df_WithPredictions)
 
-    println(df.head())
-    println(result.head())
-    println(score)
+    df_WithPredictions.groupBy("final_status", "predictions").count.show()
+    println("f1 score for model: " + score)
   }
 }
 

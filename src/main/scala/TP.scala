@@ -1,8 +1,10 @@
 import org.apache.spark.SparkContext
 import org.apache.spark.ml.classification.LogisticRegression
 import org.apache.spark.ml.Pipeline
-import org.apache.spark.sql.{SQLContext, DataFrame}
-import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}
+import org.apache.spark.sql.{SQLContext, DataFrame, Row, Dataset}
+import org.apache.spark.ml.tuning.{TrainValidationSplitModel, TrainValidationSplit, ParamGridBuilder}
+import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
+import org.apache.spark.ml.param.{DoubleParam, ParamMap}
 import org.apache.spark.ml.feature.{
   CountVectorizer,
   CountVectorizerModel,
@@ -46,7 +48,7 @@ object TP {
   }
   def getTfStage(): CountVectorizer = {
     return new CountVectorizer()
-      .setInputCol("filtered_token")
+      .setInputCol("filtered_tokens")
       .setOutputCol("tf")
       .setVocabSize(3)
       .setMinDF(2)
@@ -80,7 +82,7 @@ object TP {
           "hours_prepa",
           "goal",
           "country_onehot",
-          "currentcy_onehot"
+          "currency_onehot"
         ))
       .setOutputCol("features")
   }
@@ -96,6 +98,20 @@ object TP {
       .setThresholds(Array(0.7, 0.3))
       .setTol(1.0e-6)
       .setMaxIter(300)
+  }
+  def getModel(pipeline: Pipeline, paramGrid: Array[ParamMap], training: Dataset[Row]): TrainValidationSplitModel = {
+    return new TrainValidationSplit()
+      .setEvaluator(new MulticlassClassificationEvaluator)
+      .setEstimator(pipeline)
+      .setEstimatorParamMaps(paramGrid)
+      .setTrainRatio(0.7)
+      .fit(training)
+  }
+  def getParamGrid(regParam: DoubleParam, minDf: DoubleParam): Array[ParamMap] = {
+    return new ParamGridBuilder()
+      .addGrid(regParam, Array(1.0E-8, 1.0E-2, 2.0))
+      .addGrid(minDf, Array(55, 95, 20.0))
+      .build()
   }
   def main(args: Array[String]) {
     val sc = SparkContext.getOrCreate()
@@ -134,8 +150,13 @@ object TP {
     val test = splits(0)
     val training = splits(1)
 
+    val paramGrid = this.getParamGrid(stage10.regParam, stage3.minDF)
+    val model = this.getModel(pipeline, paramGrid, training)
+    val result = model.transform(test)
+
 
     println(df.head())
+    println(result.head())
   }
 }
 

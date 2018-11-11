@@ -91,9 +91,9 @@ object TP {
       .setElasticNetParam(0.0)
       .setFitIntercept(true)
       .setFeaturesCol("features")
-      // .setLabelCol("final_status")
+      .setLabelCol("final_status")
       .setStandardization(true)
-      .setPredictionCol("prediction")
+      .setPredictionCol("predictions")
       .setRawPredictionCol("raw_predictions")
       .setThresholds(Array(0.7, 0.3))
       .setTol(1.0e-6)
@@ -101,7 +101,11 @@ object TP {
   }
   def getModel(pipeline: Pipeline, paramGrid: Array[ParamMap], training: Dataset[Row]): TrainValidationSplitModel = {
     return new TrainValidationSplit()
-      .setEvaluator(new MulticlassClassificationEvaluator)
+      .setEvaluator(
+        new MulticlassClassificationEvaluator()
+          .setLabelCol("final_status")
+          .setPredictionCol("predictions")
+      )
       .setEstimator(pipeline)
       .setEstimatorParamMaps(paramGrid)
       .setTrainRatio(0.7)
@@ -120,7 +124,6 @@ object TP {
     import sqlContext.implicits._
 
     val df = this.getDf(sqlContext)
-    val df2 = df.withColumnRenamed("final_status", "label")
     val stage1 = this.getTokenizeStage()
     val stage2 = this.getWordsRemoverStage()
     val stage3 = this.getTfStage()
@@ -147,7 +150,7 @@ object TP {
           stage10
         ))
 
-    val splits = df2.randomSplit(Array(0.1, 0.9), 24)
+    val splits = df.randomSplit(Array(0.1, 0.9), 24)
     val test = splits(0)
     val training = splits(1)
 

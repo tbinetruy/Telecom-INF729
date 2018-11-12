@@ -3,9 +3,19 @@
 #+BEGIN_SRC bash
 git clone https://github.com/tbinetruy/Telecom-INF729.git
 cd Telecom-INF729
-sbt package
+
+# Extract dataset
 tar -xzf prepared_trainingset.tar.gz
-./$SPARK_HOME/bin/spark-submit target/scala-2.11/spark-tp3_2.11-1.0.jar
+
+# Download and extract Spark 2.3.2
+wget https://www-eu.apache.org/dist/spark/spark-2.3.2/spark-2.3.2-bin-hadoop2.7.tgz
+tar -xf spark-2.3.2-bin-hadoop2.7.tgz
+
+# Build
+sbt package
+
+# Run
+./spark-2.3.2-bin-hadoop2.7/bin/spark-submit target/scala-2.11/spark-tp3_2.11-1.0.jar
 #+END_SRC
 
 

@@ -118,6 +118,8 @@ object TP {
   def getModel(pipeline: Pipeline, paramGrid: Array[ParamMap], training: Dataset[Row]): TrainValidationSplitModel = {
     return new TrainValidationSplit()
       .setEvaluator(
+        // defaults to f1 scoring
+        // https://spark.apache.org/docs/2.3.2/api/java/org/apache/spark/ml/evaluation/MulticlassClassificationEvaluator.html#metricName--
         new MulticlassClassificationEvaluator()
           .setLabelCol("final_status")
           .setPredictionCol("predictions")

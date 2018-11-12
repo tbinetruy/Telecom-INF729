@@ -130,13 +130,13 @@ object TP {
   def getParamGridRandomForest(numTrees: IntParam, minDf: DoubleParam): Array[ParamMap] = {
     return new ParamGridBuilder()
       .addGrid(numTrees, Array(10, 500, 10))
-      .addGrid(minDf, Array(55, 95, 20.0))
+      .addGrid(minDf, Array(55.0, 75.0, 95.0))
       .build()
   }
   def getParamGridLogisticReg(regParam: DoubleParam, minDf: DoubleParam): Array[ParamMap] = {
     return new ParamGridBuilder()
       .addGrid(regParam, Array(10e-8, 10e-6, 10e-4, 10e-2))
-      .addGrid(minDf, Array(55, 95, 20.0))
+      .addGrid(minDf, Array(55.0, 75.0, 95.0))
       .build()
   }
   def main(args: Array[String]) {

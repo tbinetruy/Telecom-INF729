@@ -171,14 +171,13 @@ object TP {
           stage7,
           stage8,
           stage9,
-          stage10RandomForest
+          stage10LogisticReg
         ))
 
-    val splits = df.randomSplit(Array(0.1, 0.9))
-    val test = splits(0)
-    val training = splits(1)
+    val Array(training, test) = df.randomSplit(Array(0.9, 0.1), seed = 12345)
 
-    val paramGrid = this.getParamGridRandomForest(stage10RandomForest.numTrees, stage3.minDF)
+    // val paramGrid = this.getParamGridRandomForest(stage10RandomForest.numTrees, stage3.minDF)
+    val paramGrid = this.getParamGridLogisticReg(stage10LogisticReg.regParam, stage3.minDF)
     val model = this.getModel(pipeline, paramGrid, training)
     val df_WithPredictions= model.transform(test)
 

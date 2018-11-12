@@ -143,7 +143,6 @@ object TP {
   }
   def main(args: Array[String]) {
     val sc = SparkContext.getOrCreate()
-    val yo: Array[String] = new Array(5)
     val sqlContext = new SQLContext(sc)
     import sqlContext.implicits._
 

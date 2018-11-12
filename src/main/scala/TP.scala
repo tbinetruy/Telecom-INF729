@@ -59,8 +59,6 @@ object TP {
     return new CountVectorizer()
       .setInputCol("filtered_tokens")
       .setOutputCol("tf")
-      .setVocabSize(3)
-      .setMinDF(2)
   }
   def indexCountryStage(): StringIndexer = {
     return new StringIndexer()

@@ -1,0 +1,25 @@
+* Building & Running
+
+#+BEGIN_SRC bash
+git@github.com:tbinetruy/Telecom-INF729.git
+cd Telecom-INF729
+sbt package
+tar -xzf prepared_trainingset.tar.gz
+./$SPARK_HOME/bin/spark-submit target/scala-2.11/spark-tp3_2.11-1.0.jar
+#+END_SRC
+
+
+* Output
+
+#+begin_src
++------------+-----------+-----+
+|final_status|predictions|count|
++------------+-----------+-----+
+|           1|        0.0|  963|
+|           0|        0.0| 4387|
+|           1|        1.0| 2503|
+|           0|        1.0| 2879|
++------------+-----------+-----+
+
+f1 score for model: 0.653581958726916
+#+end_src

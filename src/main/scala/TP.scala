@@ -1,9 +1,16 @@
 import org.apache.spark.SparkContext
 import org.apache.spark.ml.Pipeline
-import org.apache.spark.ml.classification.LogisticRegression
+import org.apache.spark.ml.classification.{
+  LogisticRegression,
+  RandomForestClassifier
+}
 import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
 import org.apache.spark.sql.{SQLContext, DataFrame, Row, Dataset}
-import org.apache.spark.ml.param.{DoubleParam, ParamMap}
+import org.apache.spark.ml.param.{
+  DoubleParam,
+  IntParam,
+  ParamMap
+}
 import org.apache.spark.ml.tuning.{
   TrainValidationSplitModel,
   TrainValidationSplit,
@@ -89,7 +96,7 @@ object TP {
       .setOutputCol("features")
   }
   def getLogisticRegressionStage(): LogisticRegression = {
-    new LogisticRegression()
+    return new LogisticRegression()
       .setElasticNetParam(0.0)
       .setFitIntercept(true)
       .setFeaturesCol("features")
@@ -100,6 +107,13 @@ object TP {
       .setThresholds(Array(0.7, 0.3))
       .setTol(1.0e-6)
       .setMaxIter(300)
+  }
+  def getRandomForestStage(): RandomForestClassifier = {
+    return new RandomForestClassifier()
+      .setLabelCol("final_status")
+      .setFeaturesCol("features")
+      .setPredictionCol("predictions")
+      .setRawPredictionCol("raw_predictions")
   }
   def getModel(pipeline: Pipeline, paramGrid: Array[ParamMap], training: Dataset[Row]): TrainValidationSplitModel = {
     return new TrainValidationSplit()
@@ -113,9 +127,9 @@ object TP {
       .setTrainRatio(0.7)
       .fit(training)
   }
-  def getParamGrid(regParam: DoubleParam, minDf: DoubleParam): Array[ParamMap] = {
+  def getParamGrid(numTrees: IntParam, minDf: DoubleParam): Array[ParamMap] = {
     return new ParamGridBuilder()
-      .addGrid(regParam, Array(10e-8, 10e-6, 10e-4, 10e-2))
+      .addGrid(numTrees, Array(10, 100, 10))
       .addGrid(minDf, Array(55, 95, 20.0))
       .build()
   }
@@ -136,6 +150,7 @@ object TP {
     val stage8 = this.getCountryOneHot()
     val stage9 = this.VectorizationStage()
     val stage10 = this.getLogisticRegressionStage()
+    val stage10bis = this.getRandomForestStage()
 
     val pipeline = new Pipeline()
       .setStages(
@@ -149,17 +164,16 @@ object TP {
           stage7,
           stage8,
           stage9,
-          stage10
+          stage10bis
         ))
 
     val splits = df.randomSplit(Array(0.1, 0.9))
     val test = splits(0)
     val training = splits(1)
 
-    val paramGrid = this.getParamGrid(stage10.regParam, stage3.minDF)
+    val paramGrid = this.getParamGrid(stage10bis.numTrees, stage3.minDF)
     val model = this.getModel(pipeline, paramGrid, training)
     val df_WithPredictions= model.transform(test)
-
 
     val score = new MulticlassClassificationEvaluator()
       .setLabelCol("final_status")

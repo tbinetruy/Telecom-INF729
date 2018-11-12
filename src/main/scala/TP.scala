@@ -127,9 +127,15 @@ object TP {
       .setTrainRatio(0.7)
       .fit(training)
   }
-  def getParamGrid(numTrees: IntParam, minDf: DoubleParam): Array[ParamMap] = {
+  def getParamGridRandomForest(numTrees: IntParam, minDf: DoubleParam): Array[ParamMap] = {
     return new ParamGridBuilder()
-      .addGrid(numTrees, Array(10, 100, 10))
+      .addGrid(numTrees, Array(10, 500, 10))
+      .addGrid(minDf, Array(55, 95, 20.0))
+      .build()
+  }
+  def getParamGridLogisticReg(regParam: DoubleParam, minDf: DoubleParam): Array[ParamMap] = {
+    return new ParamGridBuilder()
+      .addGrid(regParam, Array(10e-8, 10e-6, 10e-4, 10e-2))
       .addGrid(minDf, Array(55, 95, 20.0))
       .build()
   }
@@ -149,8 +155,8 @@ object TP {
     val stage7 = this.getCurrencyOneHot()
     val stage8 = this.getCountryOneHot()
     val stage9 = this.VectorizationStage()
-    val stage10 = this.getLogisticRegressionStage()
-    val stage10bis = this.getRandomForestStage()
+    val stage10LogisticReg = this.getLogisticRegressionStage()
+    val stage10RandomForest = this.getRandomForestStage()
 
     val pipeline = new Pipeline()
       .setStages(
@@ -164,14 +170,14 @@ object TP {
           stage7,
           stage8,
           stage9,
-          stage10bis
+          stage10RandomForest
         ))
 
     val splits = df.randomSplit(Array(0.1, 0.9))
     val test = splits(0)
     val training = splits(1)
 
-    val paramGrid = this.getParamGrid(stage10bis.numTrees, stage3.minDF)
+    val paramGrid = this.getParamGridRandomForest(stage10RandomForest.numTrees, stage3.minDF)
     val model = this.getModel(pipeline, paramGrid, training)
     val df_WithPredictions= model.transform(test)
 

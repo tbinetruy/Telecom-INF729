@@ -53,7 +53,7 @@ object TP {
   }
   def getDf(sqlContext: SQLContext): DataFrame = {
     return sqlContext.read.parquet(
-      "spark-tp3/prepared_trainingset")
+      "prepared_trainingset")
   }
   def getTfStage(): CountVectorizer = {
     return new CountVectorizer()

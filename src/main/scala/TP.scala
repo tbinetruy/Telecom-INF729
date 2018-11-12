@@ -64,11 +64,13 @@ object TP {
     return new StringIndexer()
       .setInputCol("country2")
       .setOutputCol("country2_indexed")
+      .setHandleInvalid("skip")
   }
   def indexCurrencyStage(): StringIndexer = {
     return new StringIndexer()
       .setInputCol("currency2")
       .setOutputCol("currency2_indexed")
+      .setHandleInvalid("skip")
   }
   def getCurrencyOneHot(): OneHotEncoderEstimator = {
     return new OneHotEncoderEstimator()
